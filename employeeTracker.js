@@ -488,6 +488,60 @@ function employeeByDepartment(){
 
     })
 }
+//----------------------------------------------------
+function updateEmployeeRole(){
+
+    connection.query("SELECT * FROM employee",function(err,data){
+
+        var nameArray = []
+        for(let i in data){
+            nameArray.push(data[i].first_name+" "+data[i].last_name)
+        }
+        
+            inquirer.prompt([
+                {
+                    name:"employee",
+                    message:"Which employee's role do you want to update?",
+                    type:"list",
+                    choices:nameArray
+                }
+            ]).then(answer=>{
+
+                connection.query(`SELECT * FROM role`,function(err,roleData){
+
+                    var roleTitleArray = []
+                    for(let j in roleData){
+                        roleTitleArray.push(roleData[j].title)
+                    }
+
+                    inquirer.prompt([
+                        {
+                            name:"role",
+                            message:"Which role do you want to assign the selected employee?",
+                            type:"list",
+                            choices:roleTitleArray
+                        }
+                    ]).then(answer2=>{
+
+                        for(let k in roleData ){
+                            if(answer2.role===roleData[k].title){
+                                var roleId= roleData[k].id
+
+                            }
+                        }
+                        connection.query(`UPDATE employee SET role_id=${roleId} WHERE first_name='${answer.employee.split(" ")[0]}' AND last_name='${answer.employee.split(" ")[1]}'`,function(err,data){
+                            if(err) throw err
+                            choiceToContinue();
+                        })
+                    })
+
+                })
+
+            })
+
+    })
+
+}
 
 //call first question function
 firstQuestion()
