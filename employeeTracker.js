@@ -36,6 +36,7 @@ function firstQuestion(){
                 employeeByManager()
                 break;
             case "View all employees by department":
+                employeeByDepartment()
                 break;
             case "Add employee":
                 addEmployee();
@@ -44,6 +45,7 @@ function firstQuestion(){
                 deleteEmployee()
                 break;
             case "Update employee role":
+                updateEmployeeRole()
                 break;
             case "View departments":
                 viewDepartment()
@@ -252,8 +254,7 @@ function addEmployee(){
                 
                                                 connection.query(`SELECT id FROM role WHERE title='${answer.employeeManager}'`,function(err,managerData){
                                                     if(err) throw err
-                                                    console.log(managerData[0].id)
-                                                    console.log(managerData[0])
+                                                    
                                                     
                                                     connection.query(`INSERT INTO employee (first_name,last_name,role_id,manager_id) VALUES('${answer.firstName}','${answer.lastName}',${roleData[k].id},${managerData[0].id})`,function(err,insertData){
                                                         if(err) throw err
@@ -444,6 +445,49 @@ function employeeByManager(){
     })
 }
 //---------------------------------------------
+
+function employeeByDepartment(){
+
+    connection.query("SELECT * FROM department",function(err,data){
+
+
+        var departmentArray = []
+        for(let i in data ){
+            departmentArray.push(data[i].name)
+        }
+
+        inquirer.prompt([
+            {
+                name:"departmentName",
+                message:"Which department would you like to see employees for?",
+                type:"list",
+                choices:departmentArray
+            }
+        ]).then((answer)=>{
+
+
+            for(let k in data){
+
+                if(answer.departmentName===data[k].name){
+                    var departmentId = data[k].id
+
+                    connection.query(`SELECT id FROM role WHERE department_id='${departmentId}'`,function(err,roleId){
+
+                        connection.query(`SELECT * FROM employee INNER JOIN role ON employee.role_id=role.id`,function(err,innerJoinTable){
+                            if(err) throw err
+                            console.table(innerJoinTable);
+
+                            choiceToContinue();
+                        })
+                    })
+                }
+
+            }
+
+        })
+
+    })
+}
 
 //call first question function
 firstQuestion()
