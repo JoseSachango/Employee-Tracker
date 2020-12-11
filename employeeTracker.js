@@ -135,8 +135,7 @@ function addRole_InquirerPrompt(departmentArray){
 
         connection.query(`SELECT id FROM department WHERE name='${answer.department}'`,function(err,data){
             if(err) throw err
-            console.log(data)
-            console.log(data[0].id)
+            
            
           
             connection.query(`INSERT INTO role (title,salary,department_id) VALUES('${answer.title}',${answer.salary},${data[0].id})`,function(err,data){
@@ -204,17 +203,7 @@ function inquirerForAE(arg1,arg2,arg3){
     ]).then((answer)=>{
 
         
-                                    /*
-                                    if(answer.employeeRole==="N/A (If role not available go back and select 'Add a new role')"){
-                                        addRole()
-                                        return;
-                                    }
-                                    if(answer.employeeManager==="N/A (if manager not available go back and select 'Add a new role'. Make sure to include the work 'Manager' in the role title)"){
-                                        addRole()
-                                        return;
-                                    }*/
-
-                                    //console.log(answer.employeeManager)
+                                  
 
                                     
                                 for(let k in arg3){
@@ -234,21 +223,19 @@ function inquirerForAE(arg1,arg2,arg3){
                                                 })
                     
                                         }else{
-                                            console.log("The else statment has been activated")
+                                            
                                         }
                 
                                     
                                 }
-                                console.log("I am outside the for loop")
+                                
                                 
                                 if(answer.employeeRole==="N/A (If role not available go back and select 'Add a new role')" || answer.employeeManager==="N/A (if manager not available go back and select 'Add a new role'. Make sure to include the work 'Manager' in the role title)"){
                                     addRole()
-                                    console.log("I am inside the if statment")
                                     
-                                }else{
-                                    console.log("None of the conditional statments registered")
-                                    console.log(answer.employeeManager)
+                                    
                                 }
+                                
                                
 
     })
@@ -530,13 +517,13 @@ function employeeByDepartment(){
 
                 if(answer.departmentName===data[k].name){
                     var departmentId = data[k].id
-                    console.log(departmentId)
+                   
                     connection.query(`SELECT id FROM role WHERE department_id='${departmentId}'`,function(err,roleId){
-                        console.log(roleId)
+                      
                         connection.query(`SELECT * FROM employee INNER JOIN role ON employee.role_id=role.id WHERE role.department_id=${departmentId}`,function(err,innerJoinTable){
                             if(err) throw err
                             console.table(innerJoinTable);
-                            console.log("The inner join is working")
+                            
 
                             choiceToContinue();
                         })
