@@ -83,7 +83,7 @@ function addDepartment(){
     ]).then((answer)=>{
         connection.query(`INSERT INTO department (name) VALUES ('${answer.name}')`,function(err,data){
             if(err) throw err
-           
+            choiceToContinue()
         })
         
         
@@ -94,8 +94,9 @@ function addDepartment(){
 function viewDepartment(){
     connection.query("SELECT * FROM department",function(err,data){
         if(err) throw err
-        console.log("The value below is the data given by the query: ")
+        
         console.table(data)
+        choiceToContinue()
 
     })
 };
@@ -136,6 +137,7 @@ function addRole_InquirerPrompt(departmentArray){
             if(err) throw err
             console.log(data)
             console.log(data[0].id)
+           
           
             connection.query(`INSERT INTO role (title,salary,department_id) VALUES('${answer.title}',${answer.salary},${data[0].id})`,function(err,data){
                 if(err) throw err
@@ -168,8 +170,89 @@ function viewRole(){
     connection.query("SELECT * FROM role",function(err,data){
         if(err) throw err
         console.table(data)
+        choiceToContinue()
     })
 };
+//--------------------------------------------------------
+function inquirerForAE(arg1,arg2,arg3){
+    inquirer.prompt([
+        {
+            name:"firstName",
+            message:"What's the employees first name?",
+            type:"input"
+        },
+        {
+            name:"lastName",
+            message:"What's the employees last name?",
+            type:"input"
+        },
+        {
+            name:"employeeRole",
+            message:"What is the employees role/title?",
+            type:"list",
+            choices: arg1
+
+        },
+        {
+            name:"employeeManager",
+            message:"What manager will this employee fall under (If this is employee is the manager select his title)?",
+            type:"list",
+            choices: arg2
+        }
+
+
+    ]).then((answer)=>{
+
+        
+                                    /*
+                                    if(answer.employeeRole==="N/A (If role not available go back and select 'Add a new role')"){
+                                        addRole()
+                                        return;
+                                    }
+                                    if(answer.employeeManager==="N/A (if manager not available go back and select 'Add a new role'. Make sure to include the work 'Manager' in the role title)"){
+                                        addRole()
+                                        return;
+                                    }*/
+
+                                    //console.log(answer.employeeManager)
+
+                                    
+                                for(let k in arg3){
+                                    
+                                       
+                                        if(arg3[k].title===answer.employeeRole && !answer.employeeManager.includes("N/A") && !answer.employeeRole.includes("N/A")){
+
+                                                connection.query(`SELECT id FROM role WHERE title='${answer.employeeManager}'`,function(err,managerData){
+                                                    if(err) throw err
+                                                    
+                                                    
+                                                    connection.query(`INSERT INTO employee (first_name,last_name,role_id,manager_id) VALUES('${answer.firstName}','${answer.lastName}',${arg3[k].id},${managerData[0].id})`,function(err,insertData){
+                                                        if(err) throw err
+                                                        choiceToContinue()
+                                                    })
+                                                    
+                                                })
+                    
+                                        }else{
+                                            console.log("The else statment has been activated")
+                                        }
+                
+                                    
+                                }
+                                console.log("I am outside the for loop")
+                                
+                                if(answer.employeeRole==="N/A (If role not available go back and select 'Add a new role')" || answer.employeeManager==="N/A (if manager not available go back and select 'Add a new role'. Make sure to include the work 'Manager' in the role title)"){
+                                    addRole()
+                                    console.log("I am inside the if statment")
+                                    
+                                }else{
+                                    console.log("None of the conditional statments registered")
+                                    console.log(answer.employeeManager)
+                                }
+                               
+
+    })
+}
 //--------------------------------------------------------
 function addEmployee(){
 
@@ -178,14 +261,14 @@ function addEmployee(){
         
 
                 if(err) throw err
-                console.log(roleData)
+                
 
-                var roleDataTitleArray = [];
+                var roleDataTitleArray = ["N/A (If role not available go back and select 'Add a new role')"];
                 for(let i in roleData){
                     roleDataTitleArray.push(roleData[i].title)
                 };
 
-                var managerDataIdArray = [];
+                var managerDataIdArray = ["N/A (if manager not available go back and select 'Add a new role'. Make sure to include the work 'Manager' in the role title)"];
                 for(let j in roleData){
                     if(roleData[j].title.includes("Manager")){
 
@@ -204,8 +287,8 @@ function addEmployee(){
                                 type:"list",
                                 choices:["Yes","No"]
                             }
-                        ]).then((answer)=>{
-                            if(answer.noManager==="Yes"){
+                        ]).then((answer1)=>{
+                            if(answer1.noManager==="Yes"){
                                 addRole()
                             }else{
                                 choiceToContinue()
@@ -216,60 +299,9 @@ function addEmployee(){
                         break;
 
                     case true:
+                        inquirerForAE(roleDataTitleArray,managerDataIdArray,roleData)
                                 
-                                inquirer.prompt([
-                                    {
-                                        name:"firstName",
-                                        message:"What's the employees first name?",
-                                        type:"input"
-                                    },
-                                    {
-                                        name:"lastName",
-                                        message:"What's the employees last name?",
-                                        type:"input"
-                                    },
-                                    {
-                                        name:"employeeRole",
-                                        message:"What is the employees role/title?",
-                                        type:"list",
-                                        choices: roleDataTitleArray
-                            
-                                    },
-                                    {
-                                        name:"employeeManager",
-                                        message:"What manager will this employee fall under?",
-                                        type:"list",
-                                        choices: managerDataIdArray
-                                    }
-                            
-                            
-                                ]).then((answer)=>{
-                            
-                                    
-                                    
-                                for(let k in roleData){
-                            
-                
-                                        if(roleData[k].title===answer.employeeRole){
-                
-                                                connection.query(`SELECT id FROM role WHERE title='${answer.employeeManager}'`,function(err,managerData){
-                                                    if(err) throw err
-                                                    
-                                                    
-                                                    connection.query(`INSERT INTO employee (first_name,last_name,role_id,manager_id) VALUES('${answer.firstName}','${answer.lastName}',${roleData[k].id},${managerData[0].id})`,function(err,insertData){
-                                                        if(err) throw err
-                                                        choiceToContinue()
-                                                    })
-                                                    
-                                                })
-                    
-                                        }
-                
-                                    
-                                }
-                              
-                                    
-                                })
+                        
 
 
 
@@ -302,7 +334,7 @@ function viewAllEmployees(){
 function choiceToContinue(){
     inquirer.prompt({
         name:"continue",
-        message:"Would you like to continue editing employee data?",
+        message:"Would you like to continue editing data?",
         type:"list",
         choices:["Yes","No"]
     }).then((answer)=>{
@@ -408,12 +440,16 @@ function deleteEmployee(){
 }
 //---------------------------------------------
 function employeeByManager(){
-
     connection.query("SELECT * FROM employee",function(err,data){
+    EBMInquirer(data)})
+}
+//--------------------------------------------
+ function EBMInquirer(data1){
+    
 
-        var managerNames = []
-        for(let i in data){
-            managerNames.push(data[i].first_name+" "+data[i].last_name)
+        var managerNames = ["Not enough managers to choose from. I'd like to add more employees"]
+        for(let i in data1){
+            managerNames.push(data1[i].first_name+" "+data1[i].last_name)
         }
 
         inquirer.prompt([
@@ -427,22 +463,42 @@ function employeeByManager(){
 
             var managerNameArray = answer.manager.split(" ");
 
-            for(let j in data){
-                if(data[j].first_name===managerNameArray[0]&&data[j].last_name===managerNameArray[1]){
-                    var managerId = data[j].role_id;
+            if(answer.manager==="Not enough managers to choose from. I'd like to add more employees"){
+                addEmployee()
+            }
 
-                    connection.query(`SELECT * FROM employee WHERE manager_id='${managerId}'`,function(err,data){
+            for(let j in data1){
+                if(data1[j].first_name===managerNameArray[0]&&data1[j].last_name===managerNameArray[1]){
+                    var managerId = data1[j].role_id;
+                    
+                    connection.query(`SELECT * FROM employee WHERE manager_id='${managerId}'`,function(err,data2){
                         if(err) throw err
-                        console.table(data)
+                        console.table(data2)
 
                         choiceToContinue()
                     })
+                }}
+
+            /*
+            for(let j in data1){
+                if(data1[j].first_name===managerNameArray[0]&&data1[j].last_name===managerNameArray[1]){
+                    var managerId = data1[j].role_id;
+                    
+                    connection.query(`SELECT * FROM employee WHERE manager_id='${managerId}'`,function(err,data2){
+                        if(err) throw err
+                        console.table(data2)
+
+                        //choiceToContinue()
+                    })
+                }else if(answer.manager==="Not enough managers to choose from"){
+                    //addEmployee()
+                    choiceToContinue()
                 }
-            }
+            }*/
         })
 
 
-    })
+    
 }
 //---------------------------------------------
 
@@ -451,7 +507,7 @@ function employeeByDepartment(){
     connection.query("SELECT * FROM department",function(err,data){
 
 
-        var departmentArray = []
+        var departmentArray = ["Not enough departments to choose from"]
         for(let i in data ){
             departmentArray.push(data[i].name)
         }
@@ -468,14 +524,19 @@ function employeeByDepartment(){
 
             for(let k in data){
 
+                if(answer.departmentName==="Not enough departments to choose from"){
+                    addDepartment()
+                }
+
                 if(answer.departmentName===data[k].name){
                     var departmentId = data[k].id
-
+                    console.log(departmentId)
                     connection.query(`SELECT id FROM role WHERE department_id='${departmentId}'`,function(err,roleId){
-
-                        connection.query(`SELECT * FROM employee INNER JOIN role ON employee.role_id=role.id`,function(err,innerJoinTable){
+                        console.log(roleId)
+                        connection.query(`SELECT * FROM employee INNER JOIN role ON employee.role_id=role.id WHERE role.department_id=${departmentId}`,function(err,innerJoinTable){
                             if(err) throw err
                             console.table(innerJoinTable);
+                            console.log("The inner join is working")
 
                             choiceToContinue();
                         })
@@ -493,7 +554,7 @@ function updateEmployeeRole(){
 
     connection.query("SELECT * FROM employee",function(err,data){
 
-        var nameArray = []
+        var nameArray = ["Not enough employees to choose from"]
         for(let i in data){
             nameArray.push(data[i].first_name+" "+data[i].last_name)
         }
@@ -507,9 +568,12 @@ function updateEmployeeRole(){
                 }
             ]).then(answer=>{
 
+                if(answer.employee==="Not enough employees to choose from"){
+                    addEmployee()
+                }
                 connection.query(`SELECT * FROM role`,function(err,roleData){
 
-                    var roleTitleArray = []
+                    var roleTitleArray = ["Not enough roles to choose from"]
                     for(let j in roleData){
                         roleTitleArray.push(roleData[j].title)
                     }
@@ -522,6 +586,10 @@ function updateEmployeeRole(){
                             choices:roleTitleArray
                         }
                     ]).then(answer2=>{
+
+                        if(answer2.role==="Not enough roles to choose from"){
+                            addRole()
+                        }
 
                         for(let k in roleData ){
                             if(answer2.role===roleData[k].title){
